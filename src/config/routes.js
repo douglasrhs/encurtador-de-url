@@ -1,5 +1,6 @@
 const express = require('express')
-
+const User = require('../api/user/user')
+const userService = require('../api/user/userService')
 module.exports = function (server) {
 
     // API Routes
@@ -8,6 +9,7 @@ module.exports = function (server) {
     // Routes
     server.get('/', function(req, res){
         res.send('Hello World!')
+        console.log('homepage')
     })
     // GET /urls/:id (esse endpoint ñ deve ser restful)
     // POST /users/:userId/urls
@@ -19,14 +21,46 @@ module.exports = function (server) {
     // DELETE /user/:userId
 
     // USER Routes
-    /*router.route('/users')
-        .post(function(req, res){
-
-            const user 
+    //userService.register(router, '/users')// /api/users
+    router.route('/users')
+        .get(function(req, res){
+            User.find(function(err, users){
+                if (err)
+                    res.send(err);
+                    
+                res.json(users)                  
+            })    
         })
-    */
-    const userService = require('../api/user/userService')
-    userService.register(router, '/users')
+        .post(function(req, res){
+            const user = new User()
+            user.userId = req.body.userId
 
+            user.save(function(err){
+                if(err){
+                    res.send(err)
+                    res.sendStatus(409)
+                }
+                res.sendStatus(201)
+                res.json({userId : user.userId})                
+            })
+        })
+    router.route('/users/:_id')
+        .get(function(req, res){
+            User.findById(req.params._id, function(err, user){
+                if(err)
+                    res.send(err)
 
+                res.json(user)
+            })
+        })
+        .delete(function(req, res){
+            User.remove({
+                _id: req.params._id
+            }, function(err){
+                if(err)
+                    res.send(err)
+
+                res.json({message: 'User deleted'})
+            })
+        })
 }

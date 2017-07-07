@@ -2,7 +2,7 @@ const restful = require('node-restful')
 const mongoose = restful.mongoose
 
 const urlSchema = new mongoose.Schema({
-    id: { type: String, required: true, unique: true}
+    url: { type: String, required: true}
 })
 
-module.exports = restful.model('Url', userSchema)
+module.exports = restful.model('Url', urlSchema)

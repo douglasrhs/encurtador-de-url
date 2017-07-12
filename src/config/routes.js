@@ -1,9 +1,7 @@
 const express = require('express')
-const User = require('../api/user/user')
+const User = require('../api/user/userService')
 const Url = require('../api/url/url')
 
-//opção ao realizar o Update trazer os dados novos e fazer as validações novamente
-User.updateOptions({ new: true, runValidators: true})
 
 module.exports = function (server) {
 
@@ -14,6 +12,8 @@ module.exports = function (server) {
     server.get('/', function(req, res){
         res.send('Hello World!')
     })
+    User.register(server, '/users')
+
     // GET /urls/:id (esse endpoint ñ deve ser restful)
     router.route('/urls/:_id')
         .get(function(req, res){
@@ -25,6 +25,7 @@ module.exports = function (server) {
             })
         })
     // POST /users/:userId/urls
+    /*
     router.route('/users/:_id/urls')
         .post(function(req, res){
             var user = new User()
@@ -35,18 +36,16 @@ module.exports = function (server) {
                 console.log(user)
                 return user
             })
+
             var url = new Url()
             url.url = req.params.url
+            console.log(url.url)
 
         })
     // GET /stats
     // GET /users/userId/stats
     // GET /stats/:id
     // DELETE /urls/:id
-    
-    
-
-    
     router.route('/users')
         .get(function(req, res){
             User.find(function(err, users){
@@ -66,7 +65,10 @@ module.exports = function (server) {
                     res.send(err)
                 }
                 res.status(201)
-                res.json({userId : user.userId})                
+                res.json({
+                    _id: user._id,
+                    userId : user.userId                    
+                })                
             })
         })
     router.route('/users/:_id')
@@ -93,4 +95,5 @@ module.exports = function (server) {
     // ----- Utilizando a lib node-restful
     //const userService = require('../api/user/userService')
     //userService.register(router, '/users')// /api/users
+    */
 }

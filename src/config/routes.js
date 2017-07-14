@@ -1,7 +1,6 @@
 const express = require('express')
 const router = express.Router()
 const User = require('../api/user/user')
-const Url = require('../api/url/url')
 const Stats = require('../api/stats/stats')
 
 
@@ -11,58 +10,90 @@ module.exports = function (server) {
     server.use('/', router)
     // Routes
     server.get('/', function(req, res){
-        res.send('Hello World!')
+        res.send('Hello Encurtador-de-url!')
     })
 
-    router.route('/urls')
-        .get(function(req, res){
-            Url.find(function(err, urls){
-                if(err)
-                    console.log(err)
-
-                res.json(urls);
-            })
-        })
-    // GET /urls/:id (esse endpoint ñ deve ser restful)
+    
+    // GET /urls/:id (ok) (esse endpoint ñ deve ser restful)
     router.route('/urls/:_id')
         .get(function(req, res){
-            Url.findById(req.params._id,function(err, url){
+            Stats.findById(req.params._id,function(err, stats){
                 if(err)
-                    return res.send(err)
+                    return res.status(404).send(err)
 
-                console.log(url.url)
-                res.json({Location: url.url}).redirect(301, url.url);
+                console.log(stats.url)
+                res.status(301)
+                .json({Location : stats.url})
+                //.redirect(301, stats.url);
+            })
+        })
+        // DELETE /urls/:id (ok)
+        .delete(function(req, res){
+            Stats.remove({
+                _id: req.params._id
+            }, function(err){
+                if(err)
+                    res.status(404).send(err)
+
+                res.status(200).json({message: 'Url deleted'})
             })
         })
 
    
-    // POST /users/:userId/urls    
+    // POST /users/:_id/urls (ok)
     router.route('/users/:_id/urls')
-        .post(function(req, res){
+        .post(function(req, res){            
             User.findById(req.params._id, function(err, user){
-                if(err)
-                    return res.send(err)
+                if(err){ console.log('user not FIND :)'); throw err}
 
-                var url = new Url()
-                url.url = req.body.url
-                url.save(function(err){
+                console.log(req.body)
+                var stats = new Stats()
+                stats.url = req.body.url
+                stats.hits = req.body.hits
+                stats.shortUrl = req.body.shotUrl
+                stats.save(function(err){
                     if(err)
                         return res.status(400).send(err)
                     
                     res.status(201).json({
-                        _id : url._id,
-                        hits: url.hits,
-                        url : url.url,
-                        shortUrl: url.shortUrl
-                    })               
-                })                
+                        _id : stats._id,
+                        hits: stats.hits,
+                        url : stats.url,
+                        shortUrl: stats.shortUrl
+                    })
+                })
             })
-        })
-    
-    // GET /stats    
+        })  
+    // GET /stats     
+    router.route('/stats')
+        .get(function(req, res){
+            console.log('GET /stats')
+            //repensar lógica do stats
+            // precisa ter: 
+            // total de "hits" em todas urls,
+            // Quantidade de urls "urlCount"
+            // "topUrls" as 10 urls mais acessadas
+            Stats.find(function(err, stats){
+                if (err)
+                    res.send(err);
+                    
+                res.json(stats)                  
+            })    
+        })                     
+    // GET /stats/:id (ok)
+    router.route('/stats/:_id')
+        .get(function(req, res){
+            console.log('GET /stats/:id')
+            console.log(req.params)
+            Stats.findById(req.params._id, function(err, stats){
+                if(err)
+                    res.send(err)
+
+                res.json(stats)
+            })   
+        }) 
     // GET /users/userId/stats
-    // GET /stats/:id
-    // DELETE /urls/:id
+    // POST /users  (ok)
     router.route('/users')
         .get(function(req, res){
             User.find(function(err, users){
@@ -71,8 +102,7 @@ module.exports = function (server) {
                     
                 res.json(users)                  
             })    
-        })
-        // POST /users  (ok)
+        })        
         .post(function(req, res){
             const user = new User()
             user.userId = req.body.userId
@@ -86,6 +116,7 @@ module.exports = function (server) {
                 })                
             })
         })
+    // DELETE /user/:_id  (ok)
     router.route('/users/:_id')
         .get(function(req, res){
             User.findById(req.params._id, function(err, user){
@@ -95,7 +126,7 @@ module.exports = function (server) {
                 res.json(user)
             })
         })
-        // DELETE /user/:userId  (ok)
+        
         .delete(function(req, res){
             User.remove({
                 _id: req.params._id
@@ -105,7 +136,5 @@ module.exports = function (server) {
 
                 res.status(200).json({message: 'User deleted'})
             })
-        })
-
-    
+        })    
 }

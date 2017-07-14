@@ -1,48 +1,65 @@
 const express = require('express')
-const User = require('../api/user/userService')
+const router = express.Router()
+const User = require('../api/user/user')
 const Url = require('../api/url/url')
+const Stats = require('../api/stats/stats')
 
 
 module.exports = function (server) {
 
-    // API Routes
-    const router = express.Router()
+    // Prefix Routes    
     server.use('/', router)
     // Routes
     server.get('/', function(req, res){
         res.send('Hello World!')
     })
-    User.register(server, '/users')
 
+    router.route('/urls')
+        .get(function(req, res){
+            Url.find(function(err, urls){
+                if(err)
+                    console.log(err)
+
+                res.json(urls);
+            })
+        })
     // GET /urls/:id (esse endpoint ñ deve ser restful)
     router.route('/urls/:_id')
         .get(function(req, res){
             Url.findById(req.params._id,function(err, url){
                 if(err)
-                    console.log(err)
+                    return res.send(err)
 
-                res.redirect(301, Url.destino);
+                console.log(url.url)
+                res.json({Location: url.url}).redirect(301, url.url);
             })
         })
-    // POST /users/:userId/urls
-    /*
+
+   
+    // POST /users/:userId/urls    
     router.route('/users/:_id/urls')
         .post(function(req, res){
-            var user = new User()
-            user = User.findById(req.params._id, function(err, user){
+            User.findById(req.params._id, function(err, user){
                 if(err)
-                    res.send(err)
+                    return res.send(err)
 
-                console.log(user)
-                return user
+                var url = new Url()
+                url.url = req.body.url
+                url.save(function(err){
+                    if(err)
+                        return res.status(400).send(err)
+                    
+                    res.status(201).json({
+                        _id : url._id,
+                        hits: url.hits,
+                        url : url.url,
+                        shortUrl: url.shortUrl
+                    })               
+                })                
             })
-
-            var url = new Url()
-            url.url = req.params.url
-            console.log(url.url)
-
         })
-    // GET /stats
+    
+    // GET /stats    
     // GET /users/userId/stats
     // GET /stats/:id
     // DELETE /urls/:id
@@ -60,12 +77,10 @@ module.exports = function (server) {
             const user = new User()
             user.userId = req.body.userId
             user.save(function(err){
-                if(err){
-                    res.status(409)
-                    res.send(err)
-                }
-                res.status(201)
-                res.json({
+                if(err)
+                    return res.status(409).send(err)
+                
+                res.status(201).json({
                     _id: user._id,
                     userId : user.userId                    
                 })                
@@ -86,14 +101,11 @@ module.exports = function (server) {
                 _id: req.params._id
             }, function(err){
                 if(err)
-                    res.send(err)
+                    res.status(404).send(err)
 
-                res.json({message: 'User deleted'})
+                res.status(200).json({message: 'User deleted'})
             })
         })
 
-    // ----- Utilizando a lib node-restful
-    //const userService = require('../api/user/userService')
-    //userService.register(router, '/users')// /api/users
-    */
+    
 }

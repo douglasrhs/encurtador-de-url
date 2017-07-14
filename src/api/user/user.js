@@ -1,7 +1,8 @@
-const restful = require('node-restful')
-const mongoose = restful.mongoose
+//const restful = require('node-restful')
+//const mongoose = restful.mongoose
 //ou 
-//const mongoose = require('mongoose')
+const mongoose = require('mongoose')
+
 mongoose.set('debug', true)
 
 //MODEL
@@ -11,4 +12,6 @@ const userSchema = new mongoose.Schema({
     
 
 
-module.exports = restful.model('User', userSchema)
+//module.exports = restful.model('User', userSchema)
+//ou
+module.exports = mongoose.model('User', userSchema)

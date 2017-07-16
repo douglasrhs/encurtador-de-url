@@ -13,7 +13,7 @@ module.exports = function (server) {
         res.send('Hello Encurtador-de-url!')
     })
 
-    //ENDPOINT NAO REQUISITADO CRIADA PARA TESTES
+    //ENDPOINT NAO REQUISITADO CRIADO PARA TESTES
     router.route('/urls')
         .get(function (req, res){
             Stats.find(function(err, stats){
@@ -25,6 +25,7 @@ module.exports = function (server) {
         })
     // GET /urls/:id (ok) (esse endpoint ñ deve ser restful)
     router.route('/urls/:_id')
+        // GET /urls/:_id
         .get(function(req, res){
             Stats.findById(req.params._id,function(err, stats){
                 if(err)
@@ -41,12 +42,10 @@ module.exports = function (server) {
                         res.status(301)
                         .json({Location : stats.url})
                     }
-                })
-                
-                //.redirect(301, stats.url);
+                })                
             })
         })
-        // DELETE /urls/:id (ok)
+        // DELETE /urls/:_id (ok)
         .delete(function(req, res){
             Stats.remove({
                 _id: req.params._id
@@ -65,11 +64,16 @@ module.exports = function (server) {
             User.findById(req.params._id, function(err, user){
                 if(err){ console.log('user not FIND :)'); throw err}
 
-                console.log(req.body)
+                console.log('req.body: '+req.body)
                 var stats = new Stats()
                 stats.url = req.body.url
                 stats.hits = req.body.hits
                 stats.shortUrl = req.body.shotUrl
+                console.log(server.address().port)
+                (function transformShortUrl(url){
+                    
+                })()
+
                 stats.save(function(err){
                     if(err)
                         return res.status(400).send(err)
@@ -141,7 +145,16 @@ module.exports = function (server) {
                 res.json(stats)
             })   
         }) 
-    // GET /users/userId/stats
+    // GET /users/userId/stats (?)
+    router.route('/users/:_id/stats')
+        .get(function(req, res){
+            User.findById(req.params._id, function(err, data){
+                if(err){
+                    res.send(404,err)
+                }
+                res.redirect('/stats')                    
+            })
+        })
     // POST /users  (ok)
     router.route('/users')
         .get(function(req, res){

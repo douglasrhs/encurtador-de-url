@@ -13,7 +13,7 @@ module.exports = function (server) {
         res.send('Hello Encurtador-de-url!')
     })
 
-    //ENDPOINT NAO REQUISITADO CRIADO PARA TESTES
+    // GET /urls ENDPOINT NAO REQUISITADO CRIADO PARA TESTES
     router.route('/urls')
         .get(function (req, res){
             Stats.find(function(err, stats){
@@ -69,10 +69,6 @@ module.exports = function (server) {
                 stats.url = req.body.url
                 stats.hits = req.body.hits
                 stats.shortUrl = req.body.shotUrl
-                console.log(server.address().port)
-                (function transformShortUrl(url){
-                    
-                })()
 
                 stats.save(function(err){
                     if(err)

@@ -38,7 +38,6 @@ module.exports = function (server) {
                     if(err)
                         return res.status(400).send(err)
                     else{
-                        console.log('Stats saved and hit +1')
                         res.status(301)
                         .json({Location : stats.url})
                     }
@@ -87,28 +86,12 @@ module.exports = function (server) {
     // GET /stats     
     router.route('/stats')
         .get(function(req, res){
-            console.log('GET /stats')
-            //repensar lógica do stats
-            // precisa ter: 
-            // total de "hits" em todas urls, OK
-            // Quantidade de urls "urlCount" OK
-            // "topUrls" as 10 urls mais acessadas
-
-            var statsGlobal = {urlCount: 0, totalHits: 0}
+            var statsGlobal = {urlCount: 0, totalHits: 0, topUrls: {}}
             var someStats = new Stats()
             Stats.count({}, function(err, c){
-                console.log('urlCount is ' + c)
                 statsGlobal.urlCount = c
             })
-
-            // Stats.aggregate([
-            //     { $group: { _id: '$_id', totalHits: { $sum: 'hits'} } }
-            // ], function(err, docs){
-            //     console.log('totalHits is ' + docs.totalHits)
-            //     res.json(docs)
-            // })
-
-            /* FIND PARA CONTAR TOTALHITS*/
+             /* FIND PARA CONTAR TOTALHITS*/
             Stats.find(function(err, stats){
                 if (err)
                     res.send(err);
@@ -117,9 +100,34 @@ module.exports = function (server) {
                 stats.forEach(function(key){
                     hits += key.hits
                 })
-                statsGlobal.totalHits = hits;
-                res.json(statsGlobal)                  
-            })    
+                statsGlobal.totalHits = hits;    
+                //res.send(statsGlobal)                              
+            }) 
+            // FIND PARA SELECIONAR TOP 10 URLS
+            Stats.find({})
+                .limit(10)
+                .sort({ hits: -1})
+                .exec(function(err, data){
+                    if(err)
+                        throw err
+
+                    //console.log(res)
+                    statsGlobal.topUrls = data;
+                    res.send(statsGlobal) 
+                })
+            
+            
+            
+
+            // Stats.aggregate([
+            //     { $group: { _id: '$_id', totalHits: { $sum: 'hits'} } }
+            // ], function(err, docs){
+            //     console.log('totalHits is ' + docs.totalHits)
+            //     res.json(docs)
+            // })
+
+           
+               
         })                     
     // GET /stats/:id (ok)
     router.route('/stats/:_id')

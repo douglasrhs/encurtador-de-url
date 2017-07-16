@@ -13,7 +13,16 @@ module.exports = function (server) {
         res.send('Hello Encurtador-de-url!')
     })
 
-    
+    //ENDPOINT NAO REQUISITADO CRIADA PARA TESTES
+    router.route('/urls')
+        .get(function (req, res){
+            Stats.find(function(err, stats){
+                if(err)
+                    res.status(404).send(err)
+
+                res.status(200).json({stats})
+            })
+        })
     // GET /urls/:id (ok) (esse endpoint ñ deve ser restful)
     router.route('/urls/:_id')
         .get(function(req, res){
@@ -22,8 +31,19 @@ module.exports = function (server) {
                     return res.status(404).send(err)
 
                 console.log(stats.url)
-                res.status(301)
-                .json({Location : stats.url})
+
+                stats.hits = stats.hits + 1
+
+                stats.save(function(err){
+                    if(err)
+                        return res.status(400).send(err)
+                    else{
+                        console.log('Stats saved and hit +1')
+                        res.status(301)
+                        .json({Location : stats.url})
+                    }
+                })
+                
                 //.redirect(301, stats.url);
             })
         })
@@ -70,14 +90,35 @@ module.exports = function (server) {
             console.log('GET /stats')
             //repensar lógica do stats
             // precisa ter: 
-            // total de "hits" em todas urls,
-            // Quantidade de urls "urlCount"
+            // total de "hits" em todas urls, OK
+            // Quantidade de urls "urlCount" OK
             // "topUrls" as 10 urls mais acessadas
+
+            var statsGlobal = {urlCount: 0, totalHits: 0}
+            var someStats = new Stats()
+            Stats.count({}, function(err, c){
+                console.log('urlCount is ' + c)
+                statsGlobal.urlCount = c
+            })
+
+            // Stats.aggregate([
+            //     { $group: { _id: '$_id', totalHits: { $sum: 'hits'} } }
+            // ], function(err, docs){
+            //     console.log('totalHits is ' + docs.totalHits)
+            //     res.json(docs)
+            // })
+
+            /* FIND PARA CONTAR TOTALHITS*/
             Stats.find(function(err, stats){
                 if (err)
                     res.send(err);
                     
-                res.json(stats)                  
+                var hits = 0
+                stats.forEach(function(key){
+                    hits += key.hits
+                })
+                statsGlobal.totalHits = hits;
+                res.json(statsGlobal)                  
             })    
         })                     
     // GET /stats/:id (ok)
